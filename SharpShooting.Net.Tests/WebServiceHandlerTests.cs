@@ -11,12 +11,12 @@ using Moq;
 namespace SharpShooting.Net.Tests
 {
     [TestClass]
-    public class UnitTests
+    public class WebServiceHandlerTests
     {
-        private readonly Mock<IChannelFactory<IWebServiceContract>> channelFactoryMock = new Mock<IChannelFactory<IWebServiceContract>>();
-        private readonly Mock<WebServiceProxyDummy> webServiceProxyMock = new Mock<WebServiceProxyDummy>();
-        private readonly Mock<WebServiceHandler<IWebServiceContract>.IOperationContextScopeFactory> operationContextScopeFactoryMock = new Mock<WebServiceHandler<IWebServiceContract>.IOperationContextScopeFactory>();
-        private readonly Action<IWebServiceContract> actionDummy = it => { };
+        private readonly Mock<IChannelFactory<IWebServiceContract>> _channelFactoryMock = new Mock<IChannelFactory<IWebServiceContract>>();
+        private readonly Mock<WebServiceProxyDummy> _webServiceProxyMock = new Mock<WebServiceProxyDummy>();
+        private readonly Mock<WebServiceHandler<IWebServiceContract>.IOperationContextScopeFactory> _operationContextScopeFactoryMock = new Mock<WebServiceHandler<IWebServiceContract>.IOperationContextScopeFactory>();
+        private readonly Action<IWebServiceContract> _actionDummy = it => { };
 
         public interface IWebServiceContract
         {
@@ -148,36 +148,36 @@ namespace SharpShooting.Net.Tests
         [TestInitialize]
         public void TestInitialize()
         {
-            channelFactoryMock.Setup(it => it.CreateChannel(It.IsAny<EndpointAddress>())).Returns(webServiceProxyMock.Object);
+            _channelFactoryMock.Setup(it => it.CreateChannel(It.IsAny<EndpointAddress>())).Returns(_webServiceProxyMock.Object);
 
             var operationContextScopeFake = new OperationContextScope(OperationContext.Current);
-            operationContextScopeFactoryMock.Setup(it => it.CreateOperationScope(It.IsAny<IContextChannel>())).Returns(operationContextScopeFake);
+            _operationContextScopeFactoryMock.Setup(it => it.CreateOperationScope(It.IsAny<IContextChannel>())).Returns(operationContextScopeFake);
         }
 
         [TestMethod]
         public void ShouldCallCreateChannelMethod()
         {
-            WebServiceHandler<IWebServiceContract>.Invoke(operationContextScopeFactoryMock.Object, channelFactoryMock.Object, It.IsAny<EndpointAddress>(), actionDummy);
+            WebServiceHandler<IWebServiceContract>.Invoke(_operationContextScopeFactoryMock.Object, _channelFactoryMock.Object, It.IsAny<EndpointAddress>(), _actionDummy);
 
-            channelFactoryMock.Verify(it => it.CreateChannel(It.IsAny<EndpointAddress>()), Times.Once());
+            _channelFactoryMock.Verify(it => it.CreateChannel(It.IsAny<EndpointAddress>()), Times.Once());
         }
 
         [TestMethod]
         public void ShouldCallCreateOperationContextScopeMethod()
         {
-            WebServiceHandler<IWebServiceContract>.Invoke(operationContextScopeFactoryMock.Object, channelFactoryMock.Object, It.IsAny<EndpointAddress>(), actionDummy);
+            WebServiceHandler<IWebServiceContract>.Invoke(_operationContextScopeFactoryMock.Object, _channelFactoryMock.Object, It.IsAny<EndpointAddress>(), _actionDummy);
 
-            operationContextScopeFactoryMock.VerifyAll();
+            _operationContextScopeFactoryMock.VerifyAll();
         }
 
         [TestMethod]
         public void ShouldCallAbortMethodOnCommunicationObjectIfStateIsFaulted()
         {
-            webServiceProxyMock.SetupGet(it => it.State).Returns(CommunicationState.Faulted);
+            _webServiceProxyMock.SetupGet(it => it.State).Returns(CommunicationState.Faulted);
 
-            WebServiceHandler<IWebServiceContract>.Invoke(operationContextScopeFactoryMock.Object, channelFactoryMock.Object, It.IsAny<EndpointAddress>(), actionDummy);
+            WebServiceHandler<IWebServiceContract>.Invoke(_operationContextScopeFactoryMock.Object, _channelFactoryMock.Object, It.IsAny<EndpointAddress>(), _actionDummy);
 
-            webServiceProxyMock.Verify(it => it.Abort(), Times.Once());
+            _webServiceProxyMock.Verify(it => it.Abort(), Times.Once());
         }
 
         [TestMethod]
@@ -185,11 +185,11 @@ namespace SharpShooting.Net.Tests
         {
             const CommunicationState someArbitraryCommunicationStateDifferentFromFaulted = CommunicationState.Closed;
 
-            webServiceProxyMock.SetupGet(it => it.State).Returns(someArbitraryCommunicationStateDifferentFromFaulted);
+            _webServiceProxyMock.SetupGet(it => it.State).Returns(someArbitraryCommunicationStateDifferentFromFaulted);
 
-            WebServiceHandler<IWebServiceContract>.Invoke(operationContextScopeFactoryMock.Object, channelFactoryMock.Object, It.IsAny<EndpointAddress>(), actionDummy);
+            WebServiceHandler<IWebServiceContract>.Invoke(_operationContextScopeFactoryMock.Object, _channelFactoryMock.Object, It.IsAny<EndpointAddress>(), _actionDummy);
 
-            webServiceProxyMock.Verify(it => it.Close(), Times.Once());
+            _webServiceProxyMock.Verify(it => it.Close(), Times.Once());
         }
 
         [TestMethod]
@@ -197,13 +197,13 @@ namespace SharpShooting.Net.Tests
         {
             const CommunicationState someArbitraryCommunicationStateDifferentFromFaulted = CommunicationState.Closed;
 
-            webServiceProxyMock.SetupGet(it => it.State).Returns(someArbitraryCommunicationStateDifferentFromFaulted);
-            webServiceProxyMock.Setup(it => it.Close()).Throws(new CommunicationException());
+            _webServiceProxyMock.SetupGet(it => it.State).Returns(someArbitraryCommunicationStateDifferentFromFaulted);
+            _webServiceProxyMock.Setup(it => it.Close()).Throws(new CommunicationException());
 
-            WebServiceHandler<IWebServiceContract>.Invoke(operationContextScopeFactoryMock.Object, channelFactoryMock.Object, It.IsAny<EndpointAddress>(), actionDummy);
+            WebServiceHandler<IWebServiceContract>.Invoke(_operationContextScopeFactoryMock.Object, _channelFactoryMock.Object, It.IsAny<EndpointAddress>(), _actionDummy);
 
-            webServiceProxyMock.Verify(it => it.Close(), Times.Once());
-            webServiceProxyMock.Verify(it => it.Abort(), Times.Once());
+            _webServiceProxyMock.Verify(it => it.Close(), Times.Once());
+            _webServiceProxyMock.Verify(it => it.Abort(), Times.Once());
         }
 
         [TestMethod]
@@ -211,13 +211,13 @@ namespace SharpShooting.Net.Tests
         {
             const CommunicationState someArbitraryCommunicationStateDifferentFromFaulted = CommunicationState.Closed;
 
-            webServiceProxyMock.SetupGet(it => it.State).Returns(someArbitraryCommunicationStateDifferentFromFaulted);
-            webServiceProxyMock.Setup(it => it.Close()).Throws(new TimeoutException());
+            _webServiceProxyMock.SetupGet(it => it.State).Returns(someArbitraryCommunicationStateDifferentFromFaulted);
+            _webServiceProxyMock.Setup(it => it.Close()).Throws(new TimeoutException());
 
-            WebServiceHandler<IWebServiceContract>.Invoke(operationContextScopeFactoryMock.Object, channelFactoryMock.Object, It.IsAny<EndpointAddress>(), actionDummy);
+            WebServiceHandler<IWebServiceContract>.Invoke(_operationContextScopeFactoryMock.Object, _channelFactoryMock.Object, It.IsAny<EndpointAddress>(), _actionDummy);
 
-            webServiceProxyMock.Verify(it => it.Close(), Times.Once());
-            webServiceProxyMock.Verify(it => it.Abort(), Times.Once());
+            _webServiceProxyMock.Verify(it => it.Close(), Times.Once());
+            _webServiceProxyMock.Verify(it => it.Abort(), Times.Once());
         }
 
         [TestMethod]
@@ -226,12 +226,12 @@ namespace SharpShooting.Net.Tests
             const CommunicationState someArbitraryCommunicationStateDifferentFromFaulted = CommunicationState.Closed;
             var exceptionToBeThrown = new SomeException();
 
-            webServiceProxyMock.SetupGet(it => it.State).Returns(someArbitraryCommunicationStateDifferentFromFaulted);
-            webServiceProxyMock.Setup(it => it.Close()).Throws(exceptionToBeThrown);
+            _webServiceProxyMock.SetupGet(it => it.State).Returns(someArbitraryCommunicationStateDifferentFromFaulted);
+            _webServiceProxyMock.Setup(it => it.Close()).Throws(exceptionToBeThrown);
 
             try
             {
-                WebServiceHandler<IWebServiceContract>.Invoke(operationContextScopeFactoryMock.Object, channelFactoryMock.Object, It.IsAny<EndpointAddress>(), actionDummy);
+                WebServiceHandler<IWebServiceContract>.Invoke(_operationContextScopeFactoryMock.Object, _channelFactoryMock.Object, It.IsAny<EndpointAddress>(), _actionDummy);
                 Assert.Fail("Should have thrown an exception.");
             }
             catch (SomeException someException)
@@ -239,8 +239,8 @@ namespace SharpShooting.Net.Tests
                 Assert.AreSame(exceptionToBeThrown, someException, "Exception raised on Close method wasn't re-thrown.");
             }
 
-            webServiceProxyMock.Verify(it => it.Close(), Times.Once());
-            webServiceProxyMock.Verify(it => it.Abort(), Times.Once());
+            _webServiceProxyMock.Verify(it => it.Close(), Times.Once());
+            _webServiceProxyMock.Verify(it => it.Abort(), Times.Once());
         }
 
         [TestMethod]
@@ -250,80 +250,13 @@ namespace SharpShooting.Net.Tests
             Action<IWebServiceContract> actionSpy = it => { actionsExecuted++; };
 
             WebServiceHandler<IWebServiceContract>.Invoke(
-                operationContextScopeFactoryMock.Object,
-                channelFactoryMock.Object,
+                _operationContextScopeFactoryMock.Object,
+                _channelFactoryMock.Object,
                 It.IsAny<EndpointAddress>(),
                 actionSpy,
                 actionSpy);
 
             Assert.AreEqual(2, actionsExecuted);
-        }
-    }
-
-    public static class WebServiceHandler<TWebServiceContract>
-    {
-        public interface IOperationContextScopeFactory
-        {
-            OperationContextScope CreateOperationScope(IContextChannel contextChannel);
-        }
-
-        internal class OperationContextScopeFactory : IOperationContextScopeFactory
-        {
-            public OperationContextScope CreateOperationScope(IContextChannel contextChannel)
-            {
-                return new OperationContextScope(contextChannel);
-            }
-        }
-
-        public static void Invoke(IOperationContextScopeFactory operationContextScopeFactory, IChannelFactory<TWebServiceContract> channelFactory, EndpointAddress endpointAddress, params Action<TWebServiceContract>[] actions)
-        {
-            TWebServiceContract webServiceProxy = default(TWebServiceContract);
-
-            try
-            {
-                webServiceProxy = channelFactory.CreateChannel(endpointAddress);
-
-                using (operationContextScopeFactory.CreateOperationScope((IContextChannel)webServiceProxy))
-                {
-                    foreach (var action in actions)
-                        action(webServiceProxy);
-                }
-            }
-            //catch (Exception)
-            //{
-            //    // TODO: any exception caught here will be supressed if ICommunicationObject.Close() throws a System.Exception; consider logging or changing this implementation.
-            //}
-            finally
-            {
-                ICommunicationObject webServiceProxyAsCommunicationObject = null;
-
-                try
-                {
-                    webServiceProxyAsCommunicationObject = (ICommunicationObject)webServiceProxy;
-
-                    if (webServiceProxyAsCommunicationObject.State != CommunicationState.Faulted)
-                        webServiceProxyAsCommunicationObject.Close();
-                    else
-                        webServiceProxyAsCommunicationObject.Abort();
-                }
-                catch (CommunicationException)
-                {
-                    webServiceProxyAsCommunicationObject.Abort();
-                }
-                catch (TimeoutException)
-                {
-                    webServiceProxyAsCommunicationObject.Abort();
-                }
-                catch (Exception)
-                {
-                    webServiceProxyAsCommunicationObject.Abort();
-                    throw;
-                }
-                finally
-                {
-                    webServiceProxyAsCommunicationObject = null;
-                }
-            }
         }
     }
 }
